@@ -50,6 +50,7 @@ autodoc_default_flags = [
 intersphinx_mapping = {
     "python": ("http://docs.python.org/3", None),
     "sympy": ("https://docs.sympy.org/latest/", None),
+    "vc2_data_tables": ('https://vc2_data_tables.readthedocs.org/en/stable/', None),
 }
 
 
