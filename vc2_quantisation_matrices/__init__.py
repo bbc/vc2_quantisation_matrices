@@ -10,7 +10,7 @@ If you're not interested in the details, you can skip directly to the
 convenience function for computing noise-power normalising quantisation
 matrices: :py:func:`derive_quantisation_matrix`.
 
-Motivation/Background
+Motivation/background
 ---------------------
 
 VC-2 achieves lossy compression by quantizing wavelet transform coefficients.
@@ -60,7 +60,7 @@ performed on paper.
 .. _SymPy: https://www.sympy.org/
 
 
-Filter Noise Gain
+Filter noise gain
 -----------------
 
 The noise-gain of a FIR filter with coefficients :math:`h_1`, ..., :math:`h_m`
@@ -487,7 +487,7 @@ A convenience function is provided which carries out all of the above steps for
 .. autofunction:: wavelet_filter_to_alpha_beta
 
 
-Computing Quantisation Matrices
+Computing quantisation matrices
 -------------------------------
 
 The :math:`\alpha` and  :math:`\beta` values found by
@@ -550,7 +550,7 @@ This conversion is performed by:
 .. autofunction:: normalized_noise_gains_to_quantisation_matrix
 
 
-Convenience Function
+Convenience function
 --------------------
 
 A convenience function, :py:func:`derive_quantisation_matrix`, is provided

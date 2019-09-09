@@ -1,5 +1,5 @@
-:py:mod:`vc2_quantisation_matrices` Module Usage
-================================================
+:py:mod:`vc2_quantisation_matrices` Python module usage
+=======================================================
 
 The :py:mod:`vc2_quantisation_matrices` may be used to create quantisation
 matrices which normalise noise power between transform bands. This may be done

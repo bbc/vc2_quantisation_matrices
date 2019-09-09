@@ -13,5 +13,6 @@ matrices which achieve noise-power normalisation.
    :maxdepth: 2
    :caption: Contents:
    
+   cli
    api
    implementation
