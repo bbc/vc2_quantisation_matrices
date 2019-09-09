@@ -1,0 +1,1 @@
+from vc2_quantisation_matrices.version import __version__
