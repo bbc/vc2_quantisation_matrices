@@ -23,7 +23,6 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
 
-        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
     ],
     keywords="smpte-RP-2042-3 vc2 dirac dirac-pro quantisation-matrix bit-width",
