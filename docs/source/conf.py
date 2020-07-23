@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = "SMPTE ST 2042-2 (VC-2) Quantisation Matrix Computation Routines"
+project = "SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines"
 copyright = "2019, SMPTE"
 author = "SMPTE"
 
