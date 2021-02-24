@@ -26,7 +26,7 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     keywords="smpte-RP-2042-3 vc2 dirac dirac-pro quantisation-matrix bit-width",
-    install_requires=["vc2_data_tables", "enum34; python_version<'3.4'", "sympy"],
+    install_requires=["vc2_data_tables", "sympy"],
     entry_points = {
         'console_scripts': [
             'vc2-make-quantisation-matrix=vc2_quantisation_matrices.cli_tool:main',
