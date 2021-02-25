@@ -68,3 +68,10 @@ Author
 This module is currently being developed by `Jonathan Heathcote
 <mailto:jonathan.heathcote@bbc.co.uk>`_ from BBC R&D as part of a project to
 refresh VC-2's conformance testing procedures.
+
+
+License
+=======
+
+This software is distributed under the [GNU General Public License version
+3](./LICENSE.txt), &copy; BBC 2021.
