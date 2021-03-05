@@ -1,7 +1,18 @@
+import os
+
 from setuptools import setup, find_packages
 
-with open("vc2_quantisation_matrices/version.py", "r") as f:
+version_file = os.path.join(
+    os.path.dirname(__file__),
+    "vc2_quantisation_matrices",
+    "version.py",
+)
+with open(version_file, "r") as f:
     exec(f.read())
+
+readme_file = os.path.join(os.path.dirname(__file__), 'README.md')
+with open(readme_file, "r") as f:
+    long_description = f.read()
 
 setup(
     name="vc2_quantisation_matrices",
@@ -11,6 +22,8 @@ setup(
     url="https://github.com/bbc/vc2_quantisation_matrices",
     author="BBC R&D",
     description="Routines for computing quantisation matrices for the SMPTE ST 2042-2 VC-2 professional video codec.",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     license="GPL-3.0-only",
     classifiers=[
         "Development Status :: 3 - Alpha",
