@@ -50,7 +50,17 @@ autodoc_default_flags = [
 intersphinx_mapping = {
     "python": ("http://docs.python.org/3", None),
     "sympy": ("https://docs.sympy.org/latest/", None),
-    "vc2_data_tables": ('https://vc2_data_tables.readthedocs.org/en/stable/', None),
+    "vc2_data_tables": ('https://bbc.github.io/vc2_data_tables/', None),
+}
+
+
+# -- Options for intertex ----------------------------------------------------
+
+intertex_mapping = {
+    "vc2_data_tables": [
+        "{vc2_data_tables}/../docs/build/latex/*.aux",
+        "https://bbc.github.io/vc2_data_tables/vc2_data_tables_manual.aux",
+    ],
 }
 
 

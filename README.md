@@ -12,6 +12,10 @@ This software is provided both as an informal reference and also as a tool for
 computing quantisation matrices for wavelet transform and depth combinations
 for which no default matrix is provided.
 
+For further information, please conatact [Jonathan
+Heathcote](mailto:jonathan.heathcote@bbc.co.uk) or [John
+Fletcher](mailto:john.fletcher@bbc.co.uk).
+
 
 Installation
 ------------
@@ -25,9 +29,19 @@ Alternatively you can install it from a copy of this repository using:
 
     $ python setup.py install
 
+Documentation
+-------------
 
-Tests
------
+You can read the [`vc2_quantisation_matrices` manual online
+here](https://bbc.github.io/vc2_quantisation_matrices/) (also available as a
+[PDF
+format](https://bbc.github.io/vc2_quantisation_matrices/vc2_quantisation_matrices.pdf)).
+This includes both instruction on the use of this software as well as a more
+thorough overview of the process it implements.
+
+
+Running the Tests
+-----------------
 
 To run the test suite, first install the test suite dependencies using:
 
@@ -38,8 +52,8 @@ Then run the tests:
     $ pytest tests/
 
 
-Documentation
--------------
+Building the Documentation
+--------------------------
 
 To build the documentation, first install the build dependencies:
 
@@ -51,10 +65,6 @@ Then build the documentation:
     $ make html  # or make latexpdf 
 
 The built documentation can then be found in `docs/build/`.
-
-For further information, please conatact [Jonathan
-Heathcote](mailto:jonathan.heathcote@bbc.co.uk) or [John
-Fletcher](mailto:john.fletcher@bbc.co.uk).
 
 
 License
