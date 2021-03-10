@@ -29,6 +29,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "numpydoc",
     "sphinxcontrib.inkscapeconverter",
+    "sphinxcontrib.intertex",
 ]
 
 # -- Options for numpydoc/autodoc --------------------------------------------

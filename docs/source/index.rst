@@ -25,6 +25,11 @@ You can find the source code for :py:mod:`vc2_quantisation_matrices` `on GitHub
         This documentation is also `available to browse online in HTML format
         <https://bbc.github.io/vc2_quantisation_matrices/>`_.
 
+.. toctree::
+   :hidden:
+
+   bibliography.rst
+
 
 .. toctree::
    :maxdepth: 2
