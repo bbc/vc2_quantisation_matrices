@@ -33,8 +33,7 @@ Documentation
 -------------
 
 You can read the [`vc2_quantisation_matrices` manual online
-here](https://bbc.github.io/vc2_quantisation_matrices/) (also available as a
-[PDF
+here](https://bbc.github.io/vc2_quantisation_matrices/) (also available in [PDF
 format](https://bbc.github.io/vc2_quantisation_matrices/vc2_quantisation_matrices.pdf)).
 This includes both instruction on the use of this software as well as a more
 thorough overview of the process it implements.
