@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vc2_quantisation_matrices Python module usage &#8212; SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Derivation &amp; Implementation" href="implementation.html" />
+    <link rel="prev" title="vc2-make-quantisation-matrix standalone line tool" href="cli.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="implementation.html" title="Derivation &amp; Implementation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="vc2-make-quantisation-matrix standalone line tool"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_quantisation_matrices</span></code> Python module usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="vc2-quantisation-matrices-python-module-usage">
+<h1><a class="reference internal" href="implementation.html#module-vc2_quantisation_matrices" title="vc2_quantisation_matrices"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_quantisation_matrices</span></code></a> Python module usage<a class="headerlink" href="#vc2-quantisation-matrices-python-module-usage" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="implementation.html#module-vc2_quantisation_matrices" title="vc2_quantisation_matrices"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_quantisation_matrices</span></code></a> may be used to create quantisation
+matrices which normalise noise power between transform bands. This may be done
+using the following function:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.derive_quantisation_matrix">
+<code class="sig-name descname"><span class="pre">derive_quantisation_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavelet_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wavelet_index_ho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwt_depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwt_depth_ho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.derive_quantisation_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Derive a noise-power normalising quantisation matrix for the specified
+wavelet transform. This quantisation matrix will seek to cause quantisation
+noise-power to be spread evenly over all wavelet levels and bands.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>wavelet_index, wavelet_index_ho</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.WaveletFilters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.WaveletFilters</span></code></a></span></dt><dd><p>The vertical and horizontal wavelet filter indices respectively.</p>
+</dd>
+<dt><strong>dwt_depth, dwt_depth_ho</strong></dt><dd><p>The wavelet transform depth (2D depth and horizontal only depth
+respectively).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>{level: {band: int, …}, …}</dt><dd><p>A quantisation matrix, as laid out by the <code class="docutils literal notranslate"><span class="pre">quant_matrix</span></code> VC-2
+pseudocode function (12.4.5.3) and in
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.QUANTISATION_MATRICES" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.QUANTISATION_MATRICES</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<p>As an example, the quantisation matrix for a 4-level 2D LeGall transform may be
+found as follows:</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vc2_data_tables</span> <span class="kn">import</span> <span class="n">WaveletFilters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vc2_quantisation_matrices</span> <span class="kn">import</span> <span class="n">derive_quantisation_matrix</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">derive_quantisation_matrix</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">wavelet_index</span><span class="o">=</span><span class="n">WaveletFilters</span><span class="o">.</span><span class="n">le_gall_5_3</span><span class="p">,</span>     <span class="c1"># 1</span>
+<span class="gp">... </span>    <span class="n">wavelet_index_ho</span><span class="o">=</span><span class="n">WaveletFilters</span><span class="o">.</span><span class="n">le_gall_5_3</span><span class="p">,</span>  <span class="c1"># 1</span>
+<span class="gp">... </span>    <span class="n">dwt_depth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">dwt_depth_ho</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+<span class="go">{0: {&#39;LL&#39;: 4},</span>
+<span class="go"> 1: {&#39;HH&#39;: 0, &#39;HL&#39;: 2, &#39;LH&#39;: 2},</span>
+<span class="go"> 2: {&#39;HH&#39;: 2, &#39;HL&#39;: 4, &#39;LH&#39;: 4},</span>
+<span class="go"> 3: {&#39;HH&#39;: 3, &#39;HL&#39;: 5, &#39;LH&#39;: 5},</span>
+<span class="go"> 4: {&#39;HH&#39;: 5, &#39;HL&#39;: 7, &#39;LH&#39;: 7}}</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#module-vc2_data_tables" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_data_tables</span></code></a> module, used here, provides named constants
+for all of the VC-2 filter types.</p>
+</div>
+<p>The returned nested dictionary structure matches the layout used by the
+<code class="docutils literal notranslate"><span class="pre">quant_matrix()</span></code> VC-2 pseudocode function (12.4.5.3). For each transform
+level, the outer dictionary contains an entry with an inner dictionary giving
+the quantisation index offset for each orientation. Orientations are labelled
+using the strings ‘L’, ‘H’, ‘LL’ ‘LH’, ‘HL’, and ‘HH’.</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cli.html"
+                        title="previous chapter"><code class="docutils literal notranslate"><span class="pre">vc2-make-quantisation-matrix</span></code> standalone line tool</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="implementation.html"
+                        title="next chapter">Derivation &amp; Implementation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="implementation.html" title="Derivation &amp; Implementation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="vc2-make-quantisation-matrix standalone line tool"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_quantisation_matrices</span></code> Python module usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, BBC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

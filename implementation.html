@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Derivation &amp; Implementation &#8212; SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="vc2_quantisation_matrices Python module usage" href="api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="vc2_quantisation_matrices Python module usage"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Derivation &amp; Implementation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-vc2_quantisation_matrices"></span><div class="section" id="derivation-implementation">
+<h1>Derivation &amp; Implementation<a class="headerlink" href="#derivation-implementation" title="Permalink to this headline">¶</a></h1>
+<p>The (heavily annotated) <a class="reference internal" href="#module-vc2_quantisation_matrices" title="vc2_quantisation_matrices"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_quantisation_matrices</span></code></a> module implements
+the procedure required to compute quantisation matrices for arbitrary
+combinations of VC-2 filters and transform depths.</p>
+<p>If you’re not interested in the details, you can skip directly to the
+convenience function for computing noise-power normalising quantisation
+matrices: <a class="reference internal" href="api.html#vc2_quantisation_matrices.derive_quantisation_matrix" title="vc2_quantisation_matrices.derive_quantisation_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">derive_quantisation_matrix()</span></code></a>.</p>
+<div class="section" id="motivation-background">
+<h2>Motivation/background<a class="headerlink" href="#motivation-background" title="Permalink to this headline">¶</a></h2>
+<p>VC-2 achieves lossy compression by quantizing wavelet transform coefficients.
+This quantisation introduces errors (noise) into the transformed signal. When a
+picture is later synthesised from these transform values, this picture too will
+have added noise.</p>
+<p>The transformed signal is broken up into several individual bands,
+approximately corresponding to different spatial frequency components. Noise
+added to each of these bands has a differing effect on the final picture.
+Depending on the specific filter in use, a certain amount of noise added in one
+band may have a greater impact on the final picture than the same noise added
+to a different band.</p>
+<p>As a result, a uniform source of noise (e.g. quantisation) can result in a
+skewed distribution of noise in the resulting picture (e.g.  excessive low- or
+high-frequency noise with little in other spatial frequencies). This is
+undesirable since the noise level at some spatial frequencies will become much
+higher than it otherwise would be.</p>
+<p>VC-2’s quantisation matrices allow the quantisation levels in different
+transform bands to be adjusted relative to each other. In this way, for
+example, bands which are very sensitive to noise can be assigned lower
+quantisation levels than bands which are relatively insensitive.</p>
+<p>The default quantisation matrices provided with VC-2 are chosen such that
+quantisation noise results in noise which is evenly spread across the frequency
+spectrum in the synthesised picture. It is the calculation of these matrices
+which is the focus of this module.</p>
+<p>It is worth emphasising that the default quantisation matrices are <em>not</em>
+intended to exploit psycho-visual phenomena (for example by preserving
+low-frequency components at the expense of higher frequencies). VC-2 users are
+free to define custom quantisation matrices which exploit these phenomena if
+required, but this will not be discussed further here.</p>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>This module performs all of the necessary steps required to compute
+quantisation matrices for VC-2’s wavelet filters.  Internally the <a class="reference external" href="https://www.sympy.org/">SymPy</a>
+computer algebra system is used for all calculations. This means that all
+operations are carried out symbolically in much the same way they would be
+performed on paper.</p>
+</div>
+<div class="section" id="filter-noise-gain">
+<h2>Filter noise gain<a class="headerlink" href="#filter-noise-gain" title="Permalink to this headline">¶</a></h2>
+<p>The noise-gain of a FIR filter with coefficients <span class="math notranslate nohighlight">\(h_1\)</span>, …, <span class="math notranslate nohighlight">\(h_m\)</span>
+is:</p>
+<div class="math notranslate nohighlight">
+\[\sqrt{\sum_M h_m^2}\]</div>
+<p>This figure indicates the gain the filter will introduce to a white-noise
+signal. This function is implemented as:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.fir_filter_noise_gain">
+<code class="sig-name descname"><span class="pre">fir_filter_noise_gain</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.fir_filter_noise_gain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the noise-gain of a FIR filter with the specified list of filter
+coefficients.</p>
+</dd></dl>
+
+<p>If we make the (mostly reasonable) assumption that quantisation introduces
+white noise, it is the filter noise gains (of the synthesis wavelet filters)
+which our quantisation matrix must attempt to even out. To be able to do this
+we need to find the FIR filter coefficients which are to be fed to
+<a class="reference internal" href="#vc2_quantisation_matrices.fir_filter_noise_gain" title="vc2_quantisation_matrices.fir_filter_noise_gain"><code class="xref py py-func docutils literal notranslate"><span class="pre">fir_filter_noise_gain()</span></code></a>.</p>
+</div>
+<div class="section" id="from-lifting-to-classical-filters">
+<h2>From lifting to classical filters<a class="headerlink" href="#from-lifting-to-classical-filters" title="Permalink to this headline">¶</a></h2>
+<p>For reasons of efficiency and perfect reconstruction, the VC-2 wavelet filters
+are specified in terms of lifting operations:</p>
+<img alt="VC-2's lifting filter architecture." src="_images/lifting_filters.svg" /><p>This figure shows both the analysis (picture to transform coefficients) and
+synthesis (transform coefficients to picture) filtering processes.  Both
+filters are defined by <span class="math notranslate nohighlight">\(N\)</span> update (<span class="math notranslate nohighlight">\(U_n\)</span>) and predict (<span class="math notranslate nohighlight">\(P_n\)</span>)
+stages which operate on sub-sampled signals. In most (but not all) of the VC-2
+filters, only a single predict and update pair is used (i.e. <span class="math notranslate nohighlight">\(N = 1\)</span>).</p>
+<p>By contrast, the <a class="reference internal" href="#vc2_quantisation_matrices.fir_filter_noise_gain" title="vc2_quantisation_matrices.fir_filter_noise_gain"><code class="xref py py-func docutils literal notranslate"><span class="pre">fir_filter_noise_gain()</span></code></a> function requires our filters
+to be defined as classical Finite Impulse Response (FIR) filters. That is, we
+must transform the picture above into the one below:</p>
+<img alt="The classical FIR filter architecture." src="_images/classical_filters.svg" /><div class="section" id="matrix-form">
+<h3>Matrix form<a class="headerlink" href="#matrix-form" title="Permalink to this headline">¶</a></h3>
+<p>The first step in transforming the lifting filter representation into classical
+form is producing a matrix representation for the lifting procedure.</p>
+<p>In this section we’ll use the <span class="math notranslate nohighlight">\(z\)</span>-domain representation of all the
+filters and signals involved. (See section 7.1 in “Ripples in Mathematics” for
+a targeted, whirl-wind introduction.)</p>
+<p>The figure below shows the lifting representation of the analysis (top) and
+synthesis (bottom) filters again, additionally labelled according to the
+convention used here:</p>
+<img alt="Names used for synthesis z-transform representation." src="_images/lifting_z_transform.svg" /><p>Using a <span class="math notranslate nohighlight">\(z\)</span>-domain representation then our picture signal,
+<span class="math notranslate nohighlight">\(X(z)\)</span>, is split into even (<span class="math notranslate nohighlight">\(X_0(z)\)</span>) and odd (<span class="math notranslate nohighlight">\(X_1(z)\)</span>)
+samples:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    X_0(z) = \sum_n X[2n] z^{-n} &amp; \text{Even samples} \\
+    X_1(z) = \sum_n X[2n + 1] z^{-n} &amp; \text{Odd samples} \\
+\end{array}\end{split}\]</div>
+<p>Likewise the transform signal is made up of a Low Frequency (LF) component,
+<span class="math notranslate nohighlight">\(Y_0(z)\)</span> and a High Frequency (HF) component <span class="math notranslate nohighlight">\(Y_1(z)\)</span>. We define
+<span class="math notranslate nohighlight">\(Y(z)\)</span> to be an interleaving of these two signals where the LF component
+makes up the even samples and the HF component the odd samples:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    Y_0(z) = \sum_n Y[2n] z^{-n} &amp; \text{LF samples (even)} \\
+    Y_1(z) = \sum_n Y[2n + 1] z^{-n} &amp; \text{HF samples (odd)} \\
+\end{array}\end{split}\]</div>
+<p>The resulting <span class="math notranslate nohighlight">\(z\)</span>-domain matrix forms of the analysis and synthesis
+lifting processes respectively are:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+    Y_0(z) \\
+    Y_1(z)
+\end{bmatrix}
+&amp;=
+\begin{bmatrix}
+    1 &amp; -U_N(z) \\
+    0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; 0 \\
+    -P_N(z) &amp; 1 \\
+\end{bmatrix}
+\cdots
+\begin{bmatrix}
+    1 &amp; -U_2(z) \\
+    0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; 0 \\
+    -P_2(z) &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; -U_1(z) \\
+    0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; 0 \\
+    -P_1(z) &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    X_0(z) \\
+    X_1(z)
+\end{bmatrix}
+\\
+\begin{bmatrix}
+    X_0(z) \\
+    X_1(z)
+\end{bmatrix}
+&amp;=
+\begin{bmatrix}
+    1 &amp; 0 \\
+    P_1(z) &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; U_1(z) \\
+    0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; 0 \\
+    P_2(z) &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; U_2(z) \\
+    0 &amp; 1 \\
+\end{bmatrix}
+\cdots
+\begin{bmatrix}
+    1 &amp; 0 \\
+    P_N(z) &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    1 &amp; U_N(z) \\
+    0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+    Y_0(z) \\
+    Y_1(z)
+\end{bmatrix}\end{split}\]</div>
+<p>Where <span class="math notranslate nohighlight">\(U_n(z)\)</span> and <span class="math notranslate nohighlight">\(P_n(z)\)</span> are the <span class="math notranslate nohighlight">\(z\)</span>-transform
+representations of the lifting step filters. These functions can be found for
+a given wavelet transform using:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.lifting_stage_to_z_transform">
+<code class="sig-name descname"><span class="pre">lifting_stage_to_z_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.lifting_stage_to_z_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingStage" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingStage</span></code></a> describing wavelet
+filter stage, return the type of lifting stage (either predict or update)
+and a <span class="math notranslate nohighlight">\(z\)</span>-domain representation of the filtering operation as used in
+the matrix filter representation.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>stage</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingStage" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingStage</span></code></a></span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>stage_type</strong><span class="classifier"><a class="reference internal" href="#vc2_quantisation_matrices.StageType" title="vc2_quantisation_matrices.StageType"><code class="xref py py-class docutils literal notranslate"><span class="pre">StageType</span></code></a></span></dt><dd></dd>
+<dt>z_transform</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="vc2_quantisation_matrices.StageType">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">StageType</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.StageType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lifting stage type specifier.</p>
+</dd></dl>
+
+<p>If the left-most parts of the above matrices are multiplied together into
+<span class="math notranslate nohighlight">\(2 \times 2\)</span> matrices: <span class="math notranslate nohighlight">\(\textbf{H}(z)\)</span> (the analysis filter in
+matrix form) and <span class="math notranslate nohighlight">\(\textbf{G}(z)\)</span> (the synthesis filter in matrix form)
+yielding:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}\begin{bmatrix}
+    Y_0(z) \\
+    Y_1(z)
+\end{bmatrix}
+&amp;=
+\textbf{H}(z)
+\begin{bmatrix}
+    X_0(z) \\
+    X_1(z)
+\end{bmatrix}\end{split}\\\begin{split}\begin{bmatrix}
+    X_0(z) \\
+    X_1(z)
+\end{bmatrix}
+&amp;=
+\textbf{G}(z)
+\begin{bmatrix}
+    Y_0(z) \\
+    Y_1(z)
+\end{bmatrix}\end{split}\end{aligned}\end{align} \]</div>
+<p>For the analysis filter and synthesis filters respectively.</p>
+<p>The following function may be used to convert a
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a> into a <span class="math notranslate nohighlight">\(2 \times 2\)</span>
+matrix.</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.wavelet_filter_to_matrix_form">
+<code class="sig-name descname"><span class="pre">wavelet_filter_to_matrix_form</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.wavelet_filter_to_matrix_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a> filter
+specification into <span class="math notranslate nohighlight">\(z\)</span>-domain matrix form.</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All of the wavelet specifications in the VC-2 specification (and therefore
+in <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LIFTING_FILTERS" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.LIFTING_FILTERS</span></code></a>) define <em>synthesis</em>
+filter lifting stages. As suggested by the figures above, these are easily
+converted into analysis filter specifications by reversing the order and
+changing the operation. The following function may be used to convert
+between analysis and synthesis lifting filters:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.convert_between_synthesis_and_analysis">
+<code class="sig-name descname"><span class="pre">convert_between_synthesis_and_analysis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.convert_between_synthesis_and_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a synthesis wavelet filter specification, return the complementary
+analysis filter (or visa versa).</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>lifting_filter_parameters</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a></span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>lifting_filter_parameters</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a></span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="matrix-form-to-classical-form">
+<h3>Matrix form to classical form<a class="headerlink" href="#matrix-form-to-classical-form" title="Permalink to this headline">¶</a></h3>
+<p>The matrix form representation achieved above implements the following
+(slightly more formally illustrated, this time) analysis/synthesis filtering
+processes:</p>
+<img alt="Formal z-domain matrix representation." src="_images/matrix_form_formal.svg" /><p>In this new diagram, the ‘split’ and ‘interleave’ processes are shown in terms
+of their <span class="math notranslate nohighlight">\(z\)</span>-domain operations.</p>
+<p>From the matrix based representation (where our filters are defined by the
+matrices <span class="math notranslate nohighlight">\(\textbf{H}(z)\)</span> (analysis) and <span class="math notranslate nohighlight">\(\textbf{G}(z)\)</span> (synthesis)
+we now wish to decompose this into the classical form below:</p>
+<img alt="Formal z-domain classical representation." src="_images/classical_form_formal.svg" /><p>In this representation, the analysis filter is defined by <span class="math notranslate nohighlight">\(H_0(z^2)\)</span> and
+<span class="math notranslate nohighlight">\(H_1(z^2)\)</span> and synthesis filter is defined by <span class="math notranslate nohighlight">\(G_0(z^2)\)</span> and
+<span class="math notranslate nohighlight">\(G_1(z^2)\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For those new to the <span class="math notranslate nohighlight">\(z\)</span>-transform, for some signal <span class="math notranslate nohighlight">\([a_0, a_1,
+a_2, \ldots]\)</span>, whose <span class="math notranslate nohighlight">\(z\)</span>-transform is <span class="math notranslate nohighlight">\(A(z) = a_0 z^{0} + a_1
+z^{-1} + a_2 z^{-2} + \ldots\)</span> then <span class="math notranslate nohighlight">\(A(z^2) = a_0 z^{0} + a_1 z^{-2} +
+a_2 z^{-4} + \ldots\)</span> which is equivalent to a signal <span class="math notranslate nohighlight">\([a_0, 0, a_1,
+0, a_2, 0, \ldots]\)</span>.</p>
+</div>
+<div class="section" id="full-rate-filter-matrix">
+<h4>Full-rate filter matrix<a class="headerlink" href="#full-rate-filter-matrix" title="Permalink to this headline">¶</a></h4>
+<p>The first step is to modify the <span class="math notranslate nohighlight">\(\textbf{H}(z)\)</span> and <span class="math notranslate nohighlight">\(\textbf{G}(z)\)</span>
+filters to work on full-rate signals (i.e. to move the decimation step after
+analysis or before synthesis, as illustrated below:</p>
+<img alt="Decimation stages moved other side of filters." src="_images/matrix_form_formal_decimate_inside.svg" /><p>The modification is straight-forward – the filter coefficients are interleaved
+with zeros; yielding the filters <span class="math notranslate nohighlight">\(\textbf{H}(z^2)\)</span> and
+<span class="math notranslate nohighlight">\(\textbf{G}(z^2)\)</span> for the analysis and synthesis stages respectively.</p>
+<p>If we ignore the decimation and upsampling steps in the diagram above (which
+now directly cancel eachother out) we get the following matrix representation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{cl}
+    \begin{bmatrix}
+        Y_0(z^2) \\
+        Y_1(z^2) \\
+    \end{bmatrix}
+    =
+    \mathbf{H}(z^2)
+    \begin{bmatrix}
+        X(z) \\
+        z X(z) \\
+    \end{bmatrix}
+    &amp; \quad\text{Analysis filter}\\
+    \begin{bmatrix}
+        X_0(z^2) \\
+        X_1(z^2) \\
+    \end{bmatrix}
+    =
+    \mathbf{G}(z^2)
+    \begin{bmatrix}
+        Y_0(z^2) \\
+        Y_1(z^2) \\
+    \end{bmatrix}
+    &amp; \quad\text{Synthesis filter} \\
+\end{array}\end{split}\]</div>
+<p>These can be written in expanded form like so:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{cl}
+    \begin{bmatrix}
+        Y_0(z^2) \\
+        Y_1(z^2) \\
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        H_{00}(z^2) &amp; H_{01}(z^2) \\
+        H_{10}(z^2) &amp; H_{11}(z^2) \\
+    \end{bmatrix}
+    \begin{bmatrix}
+        X(z) \\
+        z X(z) \\
+    \end{bmatrix}
+    &amp; \quad\text{Analysis filter}\\
+    \begin{bmatrix}
+        X_0(z^2) \\
+        X_1(z^2) \\
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        G_{00}(z^2) &amp; G_{01}(z^2) \\
+        G_{10}(z^2) &amp; G_{11}(z^2) \\
+    \end{bmatrix}
+    \begin{bmatrix}
+        Y_0(z^2) \\
+        Y_1(z^2) \\
+    \end{bmatrix}
+    &amp; \quad\text{Synthesis filter} \\
+\end{array}\end{split}\]</div>
+</div>
+<div class="section" id="deriving-the-classical-analysis-filter">
+<h4>Deriving the classical analysis filter<a class="headerlink" href="#deriving-the-classical-analysis-filter" title="Permalink to this headline">¶</a></h4>
+<p>Rewriting the matrix form of the analysis filter as two equations and
+rearranging:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}Y_0(z^2) &amp;=
+    H_{00}(z^2)X(z) + z H_{01}(z^2) X(z) \\
+&amp;=
+    \big( H_{00}(z^2) + z H_{01}(z^2) \big) X(z) \\\end{split}\\\begin{split}Y_1(z^2) &amp;=
+    H_{10}(z^2)X(z) + z H_{11}(z^2) X(z) \\
+&amp;=
+    \big( H_{10}(z^2) + z H_{11}(z^2) \big) X(z) \\\end{split}\end{aligned}\end{align} \]</div>
+<p>This leads us to the following expressions for the classical analysis filter
+representations:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}H_0(z^2) &amp;= H_{00}(z^2) + z H_{01}(z^2) \\
+H_1(z^2) &amp;= H_{10}(z^2) + z H_{11}(z^2) \\\end{split}\]</div>
+</div>
+<div class="section" id="deriving-the-classical-synthesis-filter">
+<h4>Deriving the classical synthesis filter<a class="headerlink" href="#deriving-the-classical-synthesis-filter" title="Permalink to this headline">¶</a></h4>
+<p>Next, we repeat the same process of producing a formulaic representation of the
+matrix equation:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}X_\text{even}(z) &amp;=
+    G_{00}(z^2) Y_0(z^2) + G_{01}(z^2) Y_1(z^2) \\\end{split}\\\begin{split}zX_\text{odd}(z) &amp;=
+    G_{10}(z^2) Y_0(z^2) + G_{11}(z^2) Y_1(z^2) \\\end{split}\end{aligned}\end{align} \]</div>
+<p>In the diagrams we have defined <span class="math notranslate nohighlight">\(X(z) = X_0(z^2) + z^{-1} X_1(z^2)\)</span>.
+Substituting the formulae above into this expression and then rearranging we
+get:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}X(z) &amp;= X_0(z^1) + z^{-1}X_1(z^2) \\
+&amp;=
+    G_{00}(z^2) Y_0(z^2) + G_{01}(z^2) Y_1(z^2) +
+    z^{-1} \big( G_{10}(z^2) Y_0(z^2) + G_{11}(z^2) Y_1(z^2) \big) \\
+&amp;=
+    G_{00}(z^2) Y_0(z^2) + G_{01}(z^2) Y_1(z^2) +
+    z^{-1} G_{10}(z^2) Y_0(z^2) + z^{-1} G_{11}(z^2) Y_1(z^2) \\
+&amp;=
+    \big( G_{00}(z^2) + z^{-1} G_{10}(z^2) \big) Y_0(z^2) +
+    \big( G_{01}(z^2) + z^{-1} G_{11}(z^2) \big) Y_1(z^2) \\\end{split}\]</div>
+<p>From this we get the following expressions for the classical filter bank
+representation.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}G_0(z^2) &amp;= G_{00}(z^2) + z^{-1} G_{10}(z^2) \\
+G_1(z^2) &amp;= G_{01}(z^2) + z^{-1} G_{11}(z^2) \\\end{split}\]</div>
+</div>
+<div class="section" id="id1">
+<h4>Implementation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<p>The steps above which convert from the matrix
+representation of a filter to classical filters are implemented as:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.analysis_matrix_to_classical_form">
+<code class="sig-name descname"><span class="pre">analysis_matrix_to_classical_form</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">H</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.analysis_matrix_to_classical_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an analysis filter matrix, <span class="math notranslate nohighlight">\(\textbf{H}(z)\)</span> as produced by, e.g.
+<a class="reference internal" href="#vc2_quantisation_matrices.wavelet_filter_to_matrix_form" title="vc2_quantisation_matrices.wavelet_filter_to_matrix_form"><code class="xref py py-func docutils literal notranslate"><span class="pre">wavelet_filter_to_matrix_form()</span></code></a>, return the equivalent pair of
+classical filters, <span class="math notranslate nohighlight">\(H_0(z^2)\)</span> and  <span class="math notranslate nohighlight">\(H_1(z^2)\)</span>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.synthesis_matrix_to_classical_form">
+<code class="sig-name descname"><span class="pre">synthesis_matrix_to_classical_form</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.synthesis_matrix_to_classical_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an synthesis filter matrix, <span class="math notranslate nohighlight">\(\textbf{G}(z)\)</span> as produced by, e.g.
+<a class="reference internal" href="#vc2_quantisation_matrices.wavelet_filter_to_matrix_form" title="vc2_quantisation_matrices.wavelet_filter_to_matrix_form"><code class="xref py py-func docutils literal notranslate"><span class="pre">wavelet_filter_to_matrix_form()</span></code></a>, return the equivalent pair of
+classical filters, <span class="math notranslate nohighlight">\(G_0(z^2)\)</span> and  <span class="math notranslate nohighlight">\(G_1(z^2)\)</span>.</p>
+</dd></dl>
+
+<p>The filter coefficients can then be extracted from the resulting algebraic
+expressions using</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.z_to_coeffs">
+<code class="sig-name descname"><span class="pre">z_to_coeffs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.z_to_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary <code class="docutils literal notranslate"><span class="pre">{delay:</span> <span class="pre">coeff,</span> <span class="pre">...}</span></code> from a z-transform expressed as a
+polynomial.</p>
+<p>The returned dictionary will contain <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> <code class="docutils literal notranslate"><span class="pre">delay</span></code> values and
+SymPy expressions for the coefficients.</p>
+</dd></dl>
+
+<p>The resulting coefficients may then finally be passed to
+<a class="reference internal" href="#vc2_quantisation_matrices.fir_filter_noise_gain" title="vc2_quantisation_matrices.fir_filter_noise_gain"><code class="xref py py-func docutils literal notranslate"><span class="pre">fir_filter_noise_gain()</span></code></a> to determine the filter noise gain for that
+filter.</p>
+</div>
+</div>
+<div class="section" id="convenience-function">
+<h3>Convenience function<a class="headerlink" href="#convenience-function" title="Permalink to this headline">¶</a></h3>
+<p>A convenience function is provided which carries out all of the above steps for
+<strong>synthesis</strong> filters, yielding the low-pass band synthesis filter noise gain
+(<span class="math notranslate nohighlight">\(\alpha\)</span>) and high-pass band synthesis filter noise gain
+(<span class="math notranslate nohighlight">\(\beta\)</span>).</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.wavelet_filter_to_alpha_beta">
+<code class="sig-name descname"><span class="pre">wavelet_filter_to_alpha_beta</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synthesis_lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.wavelet_filter_to_alpha_beta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given synthesis filter definition (in a
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a>) return the
+low-pass and high-pass filter noise gains (<span class="math notranslate nohighlight">\(\alpha\)</span> and
+<span class="math notranslate nohighlight">\(\beta\)</span>).</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="computing-quantisation-matrices">
+<h2>Computing quantisation matrices<a class="headerlink" href="#computing-quantisation-matrices" title="Permalink to this headline">¶</a></h2>
+<p>The <span class="math notranslate nohighlight">\(\alpha\)</span> and  <span class="math notranslate nohighlight">\(\beta\)</span> values found by
+<a class="reference internal" href="#vc2_quantisation_matrices.wavelet_filter_to_alpha_beta" title="vc2_quantisation_matrices.wavelet_filter_to_alpha_beta"><code class="xref py py-func docutils literal notranslate"><span class="pre">wavelet_filter_to_alpha_beta()</span></code></a> may now be used to create the
+quantisation matrices for a given transform.</p>
+<p>During the VC-2 2D wavelet transform, the filtering process is applied
+recursively. The consequence of this is that the noise gains accumulate
+(multiplicatively). This is illustrated below:</p>
+<img alt="Noise-gain accumulation during filtering." src="_images/noise_gain_accumulation.svg" /><p>The <span class="math notranslate nohighlight">\(s\)</span> term is the scaling factor due to the bit shift used by VC-2
+between every transform layer. This scaling factor is simply:</p>
+<div class="math notranslate nohighlight">
+\[s = 2^{-\textrm{bitshift}}\]</div>
+<p>And is computed by:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.wavelet_filter_to_synthesis_bit_shift_scale">
+<code class="sig-name descname"><span class="pre">wavelet_filter_to_synthesis_bit_shift_scale</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synthesis_lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.wavelet_filter_to_synthesis_bit_shift_scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given synthesis filter definition (in a
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a>) return the
+scaling factor, <span class="math notranslate nohighlight">\(s\)</span>, imposed after each 2D or horizontal-only
+transform level.</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When an asymmetric transform is used, the bit shift for the horizontal
+transform is used (see <code class="docutils literal notranslate"><span class="pre">filter_bit_shift</span></code> (15.4.2)).</p>
+</div>
+<p>The weighting of <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span> and <span class="math notranslate nohighlight">\(s\)</span> for all bands and
+levels may be computed automatically using:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.accumulated_noise_gains">
+<code class="sig-name descname"><span class="pre">accumulated_noise_gains</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha_v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwt_depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwt_depth_ho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.accumulated_noise_gains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the total accumulated noise gain for all bands of a given wavelet
+transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alpha_v, beta_v</strong></dt><dd><p>The LF and HF filter noise gains for the vertical wavelet synthesis
+filter (from, e.g. <a class="reference internal" href="#vc2_quantisation_matrices.wavelet_filter_to_alpha_beta" title="vc2_quantisation_matrices.wavelet_filter_to_alpha_beta"><code class="xref py py-func docutils literal notranslate"><span class="pre">wavelet_filter_to_alpha_beta()</span></code></a>).</p>
+</dd>
+<dt><strong>alpha_h, beta_h</strong></dt><dd><p>The LF and HF filter noise gains for the horizontal wavelet synthesis
+filter (from, e.g. <a class="reference internal" href="#vc2_quantisation_matrices.wavelet_filter_to_alpha_beta" title="vc2_quantisation_matrices.wavelet_filter_to_alpha_beta"><code class="xref py py-func docutils literal notranslate"><span class="pre">wavelet_filter_to_alpha_beta()</span></code></a>).</p>
+</dd>
+<dt><strong>s</strong></dt><dd><p>The scaling applied by the bit-shift of the horizontal wavelet
+synthesis filter.</p>
+</dd>
+<dt><strong>dwt_depth, dwt_depth_ho</strong></dt><dd><p>The wavelet transform depth (and horizontal-only transform depth).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>{level: {band: noise_gain, …}, …}</dt><dd><p>A list with one dictionary per level in the same layout as the
+quantisation matrices in
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.QUANTISATION_MATRICES" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.QUANTISATION_MATRICES</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The objective of the quantisation matrix is for quantisation to have the same
+impact on every band. As such we only care about the relative noise gains. The
+noise gains computed by <a class="reference internal" href="#vc2_quantisation_matrices.accumulated_noise_gains" title="vc2_quantisation_matrices.accumulated_noise_gains"><code class="xref py py-func docutils literal notranslate"><span class="pre">accumulated_noise_gains()</span></code></a> can be normalised
+using:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.normalize_noise_gains">
+<code class="sig-name descname"><span class="pre">normalize_noise_gains</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise_gains</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.normalize_noise_gains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize a set of noise gains such that the minimum gain is 1.</p>
+<p>This operation will be performed symbolically and the resulting noise gains
+will be SymPy values.</p>
+</dd></dl>
+
+<p>In principle, the values returned by <a class="reference internal" href="#vc2_quantisation_matrices.normalize_noise_gains" title="vc2_quantisation_matrices.normalize_noise_gains"><code class="xref py py-func docutils literal notranslate"><span class="pre">normalize_noise_gains()</span></code></a> should be
+used to scale the quantisation factors used for each frequency band. In
+practice, VC-2 specifies quantisation factors via exponential quantisation
+indices:</p>
+<div class="math notranslate nohighlight">
+\[\textrm{quantisation factor} = 2^{^\textrm{quantisation index}/_4}\]</div>
+<p>Therefore, the best approximation to the desired scaling factor is achieved by
+subtracting from the quantisation index:</p>
+<div class="math notranslate nohighlight">
+\[\textrm{quantisation index adjustment} = \textrm{round}(4 \log_2(\textrm{normalised noise gain}))\]</div>
+<p>This conversion is performed by:</p>
+<dl class="py function">
+<dt id="vc2_quantisation_matrices.normalized_noise_gains_to_quantisation_matrix">
+<code class="sig-name descname"><span class="pre">normalized_noise_gains_to_quantisation_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalized_noise_gains</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.normalized_noise_gains_to_quantisation_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of normalised noise gains, returns the equivalent quantisation
+index adjustments.</p>
+<p>All results will be <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>s.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id2">
+<h2>Convenience function<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>A convenience function, <a class="reference internal" href="api.html#vc2_quantisation_matrices.derive_quantisation_matrix" title="vc2_quantisation_matrices.derive_quantisation_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">derive_quantisation_matrix()</span></code></a>, is provided
+which carries out the entire process described above.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Derivation &amp; Implementation</a><ul>
+<li><a class="reference internal" href="#motivation-background">Motivation/background</a></li>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+<li><a class="reference internal" href="#filter-noise-gain">Filter noise gain</a></li>
+<li><a class="reference internal" href="#from-lifting-to-classical-filters">From lifting to classical filters</a><ul>
+<li><a class="reference internal" href="#matrix-form">Matrix form</a></li>
+<li><a class="reference internal" href="#matrix-form-to-classical-form">Matrix form to classical form</a><ul>
+<li><a class="reference internal" href="#full-rate-filter-matrix">Full-rate filter matrix</a></li>
+<li><a class="reference internal" href="#deriving-the-classical-analysis-filter">Deriving the classical analysis filter</a></li>
+<li><a class="reference internal" href="#deriving-the-classical-synthesis-filter">Deriving the classical synthesis filter</a></li>
+<li><a class="reference internal" href="#id1">Implementation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#convenience-function">Convenience function</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#computing-quantisation-matrices">Computing quantisation matrices</a></li>
+<li><a class="reference internal" href="#id2">Convenience function</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">vc2_quantisation_matrices</span></code> Python module usage</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/implementation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="vc2_quantisation_matrices Python module usage"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Derivation &amp; Implementation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, BBC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>
