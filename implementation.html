@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Derivation &amp; Implementation &#8212; SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</title>
+    <title>Derivation &amp; Implementation &#8212; SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="api.html" title="vc2_quantisation_matrices Python module usage"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Derivation &amp; Implementation</a></li> 
       </ul>
     </div>  
@@ -224,14 +224,14 @@ a given wavelet transform using:</p>
 <dl class="py function">
 <dt id="vc2_quantisation_matrices.lifting_stage_to_z_transform">
 <code class="sig-name descname"><span class="pre">lifting_stage_to_z_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.lifting_stage_to_z_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingStage" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingStage</span></code></a> describing wavelet
+<dd><p>Given a <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingStage" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingStage</span></code></a> describing wavelet
 filter stage, return the type of lifting stage (either predict or update)
 and a <span class="math notranslate nohighlight">\(z\)</span>-domain representation of the filtering operation as used in
 the matrix filter representation.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<dt><strong>stage</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingStage" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingStage</span></code></a></span></dt><dd></dd>
+<dt><strong>stage</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingStage" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingStage</span></code></a></span></dt><dd></dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -275,19 +275,19 @@ yielding:</p>
 \end{bmatrix}\end{split}\end{aligned}\end{align} \]</div>
 <p>For the analysis filter and synthesis filters respectively.</p>
 <p>The following function may be used to convert a
-<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a> into a <span class="math notranslate nohighlight">\(2 \times 2\)</span>
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a> into a <span class="math notranslate nohighlight">\(2 \times 2\)</span>
 matrix.</p>
 <dl class="py function">
 <dt id="vc2_quantisation_matrices.wavelet_filter_to_matrix_form">
 <code class="sig-name descname"><span class="pre">wavelet_filter_to_matrix_form</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.wavelet_filter_to_matrix_form" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a> filter
+<dd><p>Convert a <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a> filter
 specification into <span class="math notranslate nohighlight">\(z\)</span>-domain matrix form.</p>
 </dd></dl>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>All of the wavelet specifications in the VC-2 specification (and therefore
-in <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LIFTING_FILTERS" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.LIFTING_FILTERS</span></code></a>) define <em>synthesis</em>
+in <a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LIFTING_FILTERS" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.LIFTING_FILTERS</span></code></a>) define <em>synthesis</em>
 filter lifting stages. As suggested by the figures above, these are easily
 converted into analysis filter specifications by reversing the order and
 changing the operation. The following function may be used to convert
@@ -300,12 +300,12 @@ analysis filter (or visa versa).</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<dt><strong>lifting_filter_parameters</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a></span></dt><dd></dd>
+<dt><strong>lifting_filter_parameters</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a></span></dt><dd></dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl>
-<dt><strong>lifting_filter_parameters</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a></span></dt><dd></dd>
+<dt><strong>lifting_filter_parameters</strong><span class="classifier"><a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a></span></dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -494,7 +494,7 @@ filter.</p>
 <dt id="vc2_quantisation_matrices.wavelet_filter_to_alpha_beta">
 <code class="sig-name descname"><span class="pre">wavelet_filter_to_alpha_beta</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synthesis_lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.wavelet_filter_to_alpha_beta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given synthesis filter definition (in a
-<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a>) return the
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a>) return the
 low-pass and high-pass filter noise gains (<span class="math notranslate nohighlight">\(\alpha\)</span> and
 <span class="math notranslate nohighlight">\(\beta\)</span>).</p>
 </dd></dl>
@@ -518,7 +518,7 @@ between every transform layer. This scaling factor is simply:</p>
 <dt id="vc2_quantisation_matrices.wavelet_filter_to_synthesis_bit_shift_scale">
 <code class="sig-name descname"><span class="pre">wavelet_filter_to_synthesis_bit_shift_scale</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synthesis_lifting_filter_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vc2_quantisation_matrices.wavelet_filter_to_synthesis_bit_shift_scale" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given synthesis filter definition (in a
-<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a>) return the
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.LiftingFilterParameters" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">vc2_data_tables.LiftingFilterParameters</span></code></a>) return the
 scaling factor, <span class="math notranslate nohighlight">\(s\)</span>, imposed after each 2D or horizontal-only
 transform level.</p>
 </dd></dl>
@@ -555,7 +555,7 @@ synthesis filter.</p>
 <dd class="field-even"><dl class="simple">
 <dt>{level: {band: noise_gain, …}, …}</dt><dd><p>A list with one dictionary per level in the same layout as the
 quantisation matrices in
-<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.QUANTISATION_MATRICES" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v0.1.6)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.QUANTISATION_MATRICES</span></code></a>.</p>
+<a class="reference external" href="https://bbc.github.io/vc2_data_tables/api.html#vc2_data_tables.QUANTISATION_MATRICES" title="(in SMPTE ST 2042-1 (VC-2) Data Tables v1.0.0)"><code class="xref py py-data docutils literal notranslate"><span class="pre">vc2_data_tables.QUANTISATION_MATRICES</span></code></a>.</p>
 </dd>
 </dl>
 </dd>
@@ -668,13 +668,13 @@ which carries out the entire process described above.</p>
         <li class="right" >
           <a href="api.html" title="vc2_quantisation_matrices Python module usage"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 0.1.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SMPTE ST 2042-1 (VC-2) Quantisation Matrix Computation Routines 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Derivation &amp; Implementation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, BBC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.3.
     </div>
   </body>
 </html>
